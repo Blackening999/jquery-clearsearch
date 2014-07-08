@@ -30,62 +30,77 @@
  * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
- * ========================================================================= */
-(function($) {
-	$.fn.clearSearch = function(options) {
-		var settings = $.extend({
-			'clearClass' : 'clear_input',
-			'focusAfterClear' : true,
-			'linkText' : '&times;'
-		}, options);
-		return this.each(function() {
-					var $this = $(this), btn,
-						divClass = settings.clearClass + '_div';
+ * =========================================================================
+ * Modified by Blackening (Vladimir Katansky)
+ * */
 
-					if (!$this.parent().hasClass(divClass)) {
-						$this.wrap('<div style="position: relative;" class="'
-							+ divClass + '">' + $this.html() + '</div>');
-						$this.after('<a style="position: absolute; cursor: pointer;" class="'
-							+ settings.clearClass + '">' + settings.linkText + '</a>');
-					}
-					btn = $this.next();
 
-					function clearField() {
-						$this.val('').change();
-						triggerBtn();
-						if (settings.focusAfterClear) {
-							$this.focus();
-						}
-						if (typeof (settings.callback) === "function") {
-							settings.callback();
-						}
-					}
+ (function ($) {
+    $.fn.clearSearch = function (options) {
+        var settings = $.extend({
+            'clearClass': 'clear_input',
+            'focusAfterClear': true,
+            'linkText': '&times;'
+        }, options);
+        return this.each(function () {
+            var $this = $(this), btn,
+                divClass = settings.clearClass + '_div';
 
-					function triggerBtn() {
-						if (hasText()) {
-							btn.show();
-						} else {
-							btn.hide();
-						}
-						update();
-					}
+            if (!$this.parent().hasClass(divClass)) {
+                $this.wrap('<div style="position: relative;" class="'
+                    + divClass + '">' + $this.html() + '</div>');
+                $this.after('<a style="position: absolute; cursor: pointer; z-index: 2;" class="'
+                    + settings.clearClass + '">' + settings.linkText + '</a>');
+            }
+            btn = $this.next();
 
-					function hasText() {
-						return $this.val().replace(/^\s+|\s+$/g, '').length > 0;
-					}
+            function clearField() {
+                $this.val('').change();
+                triggerBtn();
+                if (settings.focusAfterClear) {
+                    $this.focus();
+                }
+                if (typeof (settings.callback) === "function") {
+                    settings.callback();
+                }
+            }
 
-					function update() {
-						var width = $this.outerWidth(), height = $this
-								.outerHeight();
-						btn.css({
-							top : height / 2 - btn.height() / 2,
-							left : width - height / 2 - btn.height() / 2
-						});
-					}
+            function triggerBtn(e) {
+                if (e && (e.keyCode !== 8) && !btn.hasClass("hidden")) {
+                    return;
+                }
+                if (hasText()) {
+                    btn.parent().find(".glyphicon").css("color", "#747575;");
+                    btn.removeClass("hidden");
+                } else {
+                    btn.addClass("hidden");
+                }
+                update();
+            }
 
-					btn.on('click', clearField);
-					$this.on('keyup keydown change focus', triggerBtn);
-					triggerBtn();
-				});
-	};
+            function hideBtn() {
+                btn.parent().find(".glyphicon").css("color", "white");
+                update();
+            }
+
+            function hasText() {
+                return !!$this.__val().replace(/^\s+|\s+$/g, '').length > 0;
+            }
+
+            function update() {
+                var width = $this.outerWidth(), height = $this
+                    .outerHeight();
+                btn.css({
+                    top: height / 2 - btn.height() / 2,
+                    left: width - height / 2 - btn.height() / 2
+                });
+            }
+
+            btn.off('click').on('click', clearField);
+            $this.on('keyup keydown focus', triggerBtn);
+            $this.on('focusout', hideBtn);
+            triggerBtn();
+        });
+    };
 })(jQuery);
+
